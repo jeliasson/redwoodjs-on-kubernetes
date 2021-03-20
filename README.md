@@ -156,6 +156,9 @@ server {
     listen 8910 default_server;
     root /usr/share/nginx/html;
 
+    # Add global header
+    add_header X-Awesomeness 9000;
+
     # 1 hour cache for css and js
     location ~* \.(?:css|js)$ {
         expires 1h;
@@ -171,11 +174,12 @@ server {
         add_header Cache-Control "public";
         access_log off;
     }
+
     location / {
         try_files $uri $uri/ /index.html;
-        add_header X-Awesomeness 9000;
     }
 }
+
 ```
 
 ## Kubernetes
@@ -685,7 +689,11 @@ jobs:
 
 ## Result
 
-![image|690x220](../../argocd.png)
+## GitHub Actions
+...
+
+## ArgoCD
+![ArgoCD deployment](docs/assets/example-argocd-deployment.png "ArgoCD deployment")
 
 ## Conclusion
 
@@ -693,7 +701,7 @@ Well, this writing became much longer than I thought it would be. If you are sti
 
 #### What can be done better
 
-- Use one workflow for both `api` and `web` using a matrix
+- Make GitHub action more compact
 - We are migrating and seeding our database after build, before image push and deployment to Kubernetes. This is not ideal, as the new database schema will be up before the new api is deployed.
 
 #### Going forward from here
