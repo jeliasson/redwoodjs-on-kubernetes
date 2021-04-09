@@ -21,20 +21,25 @@ We will use Docker to containerize our Redwood application, and in this implemen
 ### `api/Dockerfile`
 
 ```dockerfile
-FROM node:14
+###########################################################################################
+# Runner: node
+###########################################################################################
+
+FROM node:14 as runner
 
 # Node
 ARG NODE_ENV
 ARG RUNTIME_ENV
+
 ENV NODE_ENV=$NODE_ENV
 ENV RUNTIME_ENV=$RUNTIME_ENV
+
 ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
 
 # Set workdir
 WORKDIR /app
 
-# Copy files
 COPY api api
 COPY .nvmrc .
 COPY babel.config.js .
@@ -46,8 +51,12 @@ COPY yarn.lock .
 # Install dependencies
 RUN yarn install --frozen-lockfile
 
-# Build api
-RUN yarn rw build api --esbuild
+# Build
+RUN yarn rw build api
+
+# Set database baseline
+# We only need to do this once per database
+# RUN yarn rw prisma migrate resolve --applied 20210311161829_baseline0
 
 # Migrate database
 RUN yarn rw prisma migrate deploy
@@ -58,15 +67,17 @@ RUN yarn rw prisma db seed
 # Clean up
 RUN rm -rf ./api/src
 
+# Debugging
+RUN ls -lA ./api/dist
+
 # Set api as workdirectory
 WORKDIR /app/api
 
 # Expose RedwoodJS api port
 EXPOSE 8911
 
-# Entrypoint to @redwoodjs/api-server binary and add a route prefix.
-# See https://github.com/redwoodjs/redwood/issues/1693
-ENTRYPOINT [ "yarn", "rw-api-server", "--functions", "./dist/functions", "--port", "8911", "--routePrefix", "/api" ]
+# Entrypoint to @redwoodjs/api-server binary
+ENTRYPOINT [ "yarn", "serve", "api", "--functions", "./dist/functions", "--port", "8911", "--routePrefix", "/api" ]
 ```
 
 Before we move over to the web side of things, did you notice how we where using `yarn api-server` as entrypoint along with a `--routePrefix` argument? Without going into much depth in this post, head over to [PR: Add routePrefix to api-server](https://github.com/redwoodjs/redwood/issues/1693) to read about the motivation behind this. For now, make sure that your `redwoodjs.toml`'s `[web].apiProxyPath` directive is set to `/api`, e.g. like so;
@@ -95,22 +106,34 @@ Also, make sure that you bring in the `api-server` PR package explained above in
 ### `web/Dockerfile`
 
 ```dockerfile
-###########################################################################
+###########################################################################################
 # Builder: node
-###########################################################################
+###########################################################################################
 
 FROM node:14 as builder
 
 # Node
 ARG NODE_ENV
 ARG RUNTIME_ENV
+
 ENV NODE_ENV=$NODE_ENV
 ENV RUNTIME_ENV=$RUNTIME_ENV
+
+# Application specific (Azure Active Directory authentication)
+ARG AZURE_ACTIVE_DIRECTORY_CLIENT_ID
+ARG AZURE_ACTIVE_DIRECTORY_AUTHORITY
+ARG AZURE_ACTIVE_DIRECTORY_REDIRECT_URI
+ARG AZURE_ACTIVE_DIRECTORY_LOGOUT_REDIRECT_URI
+
+ENV AZURE_ACTIVE_DIRECTORY_CLIENT_ID=$AZURE_ACTIVE_DIRECTORY_CLIENT_ID
+ENV AZURE_ACTIVE_DIRECTORY_AUTHORITY=$AZURE_ACTIVE_DIRECTORY_AUTHORITY
+ENV AZURE_ACTIVE_DIRECTORY_REDIRECT_URI=$AZURE_ACTIVE_DIRECTORY_REDIRECT_URI
+ENV AZURE_ACTIVE_DIRECTORY_LOGOUT_REDIRECT_URI=$AZURE_ACTIVE_DIRECTORY_LOGOUT_REDIRECT_URI
 
 # Set workdir
 WORKDIR /app
 
-# Copy files
+#COPY api .
 COPY web web
 COPY .nvmrc .
 COPY babel.config.js .
@@ -122,19 +145,19 @@ COPY yarn.lock .
 # Install dependencies
 RUN yarn install --frozen-lockfile
 
-# Build web
+# Build
 RUN yarn rw build web
 
 # Clean up
 RUN rm -rf ./web/src
 
-###########################################################################
+###########################################################################################
 # Runner: Nginx
-###########################################################################
+###########################################################################################
 
 FROM nginx as runner
 
-# Copy build dist from builder
+# Copy dist
 COPY --from=builder /app/web/dist /usr/share/nginx/html
 
 # Copy nginx configuration
@@ -179,7 +202,6 @@ server {
         try_files $uri $uri/ /index.html;
     }
 }
-
 ```
 
 ## Kubernetes

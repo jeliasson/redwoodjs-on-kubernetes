@@ -22,12 +22,6 @@ ENV AZURE_ACTIVE_DIRECTORY_AUTHORITY=$AZURE_ACTIVE_DIRECTORY_AUTHORITY
 ENV AZURE_ACTIVE_DIRECTORY_REDIRECT_URI=$AZURE_ACTIVE_DIRECTORY_REDIRECT_URI
 ENV AZURE_ACTIVE_DIRECTORY_LOGOUT_REDIRECT_URI=$AZURE_ACTIVE_DIRECTORY_LOGOUT_REDIRECT_URI
 
-# Timezone
-ENV TZ=Europe/Stockholm
-
-# Set Timezone
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
 # Set workdir
 WORKDIR /app
 
@@ -54,12 +48,6 @@ RUN rm -rf ./web/src
 ###########################################################################################
 
 FROM nginx as runner
-
-# Timezone
-ENV TZ=Europe/Stockholm
-
-# Set Timezone
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Copy dist
 COPY --from=builder /app/web/dist /usr/share/nginx/html
