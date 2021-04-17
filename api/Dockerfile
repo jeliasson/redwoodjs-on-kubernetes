@@ -54,4 +54,4 @@ WORKDIR /app/api
 EXPOSE 8911
 
 # Entrypoint to @redwoodjs/api-server binary
-ENTRYPOINT [ "yarn", "serve", "api", "--functions", "./dist/functions", "--port", "8911", "--routePrefix", "/api" ]
+ENTRYPOINT [ "yarn", "serve", "api", "--port", "8911", "--rootPath", "/api" ]

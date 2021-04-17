@@ -2,9 +2,9 @@
 
 Hi all 👋
 
-After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired to finally take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes (and some neat tools around this) and GitHub Actions - this read might be just for you.
+After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired to finally take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes (with some neat tools around this) and GitHub Actions - this read might be just for you. Head's up tho; It's quite a lot of config. 🤓
 
-Heads up; While this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want to elaborate on some topics and I'm definitely open to make this implementation better.
+Also; While this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want to elaborate on some topics and I'm definitely open to make this implementation better.
 
 ### Table of Contents
 
@@ -16,7 +16,7 @@ Heads up; While this is a working implementation that currently supports a produ
 
 ## Docker
 
-We will use Docker to containerize our Redwood application, and in this implementation we will have two images - one for `api` and one for `web`. These Dockerfiles are pretty straight-forward with some comments to each instruction.
+We will use Docker to containerize our Redwood application, and in this implementation we will have two images; one for `api` and one for `web`. These Dockerfiles are pretty straight-forward with some comments to instructions.
 
 ### `api/Dockerfile`
 
@@ -77,30 +77,15 @@ WORKDIR /app/api
 EXPOSE 8911
 
 # Entrypoint to @redwoodjs/api-server binary
-ENTRYPOINT [ "yarn", "serve", "api", "--functions", "./dist/functions", "--port", "8911", "--routePrefix", "/api" ]
+ENTRYPOINT [ "yarn", "serve", "api", "--port", "8911", "--rootPath", "/api" ]
 ```
 
-Before we move over to the web side of things, did you notice how we where using `yarn api-server` as entrypoint along with a `--routePrefix` argument? Without going into much depth in this post, head over to [PR: Add routePrefix to api-server](https://github.com/redwoodjs/redwood/issues/1693) to read about the motivation behind this. For now, make sure that your `redwoodjs.toml`'s `[web].apiProxyPath` directive is set to `/api`, e.g. like so;
+Before we move over to the web side of things, did you notice how we where using `yarn serve api` in entrypoint along with a `--rootPath` argument? Without going into much depth in this post, head over to [Add rootPath to api-server](https://github.com/redwoodjs/redwood/issues/1693) to read about the motivation behind this. For now, make sure that your `redwoodjs.toml`'s `[web].apiProxyPath` directive is set to `/api`, e.g. like so;
 
 ```
 [web]
   port = 8910
   apiProxyPath = "/api"
-```
-
-Also, make sure that you bring in the `api-server` PR package explained above in `api/package.json`, e.g. like so;
-
-```json
-{
-  "name": "api",
-  "version": "0.0.0",
-  "private": true,
-  "dependencies": {
-    "@redwoodjs/api": "^0.27.1",
-    "@redwoodjs/api-server": "https://rw-pr-redwoodjs-com.s3.amazonaws.com/1691/redwoodjs-api-server-0.27.1-988f28f.tgz",
-    "@redwoodjs/core": "^0.27.1"
-  }
-}
 ```
 
 ### `web/Dockerfile`
@@ -159,6 +144,7 @@ RUN ls -lA /usr/share/nginx/html
 EXPOSE 8910
 ```
 
+
 As we are running nginx as our web server, lets also bring in a nginx config. It's nothing fancy and mostly adding some caching of static assets. We also add header `X-Awesomeness` because we can, and not because we need to.
 
 ### `web/config/nginx/default.conf`
@@ -197,7 +183,7 @@ server {
 
 Now for the fun part (at least for some): Kubernetes.
 
-I suggest using [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/) to build and generate your Kubernetes manifest file. However, in the spirit of keeping this post simpler I will just document some of the generated Kubernetes objects. That being said, feel free to DM me for the relevant Kustomize files I use. Furthermore, I have removed the resource limiting for brevity, using `:latest` as image in this example (I suggest using the git sha as tag, which you will see later on) and using [Kubernetes Nginx Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) for the Ingress.
+I suggest using [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/) to build and generate your Kubernetes manifest file. However, in the spirit of keeping this post simpler I will just document some of the generated Kubernetes objects. That being said, feel free to DM me for the relevant Kustomize files I use. Furthermore, I have removed the resource limiting for brevity and is using [Kubernetes Nginx Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) for the Ingress.
 
 ### Secrets
 
@@ -268,7 +254,7 @@ spec:
               value: production
             - name: RUNTIME_ENV
               value: production
-          image: ghcr.io/<your org>/redwoodjs-web-main:latest
+          image: ghcr.io/<your org>/redwoodjs-web-main:22784ba
           name: web
           ports:
             - containerPort: 8910
@@ -322,7 +308,7 @@ metadata:
   name: app
 spec:
   rules:
-    - host: www.domain.tld
+    - host: jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.io
       http:
         paths:
           - backend:
@@ -335,7 +321,7 @@ spec:
             path: /api
   tls:
     - hosts:
-        - www.domain.tld
+        - jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.io
       secretName: domain-tld-tls
 ```
 
@@ -343,7 +329,7 @@ spec:
 
 So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we automate and deploy all this? Personally I give GitHub my money any day. Ironically, and a large thanks to Microsoft acquiring GitHub and the compute power that come with that, all the stuff we need is free. Regardless, here is this posts meme to illustrate my point.
 
-![image|625x500, 50%](upload://lRTWQJPdqGfiyeOjTSeruqNLASv.jpeg)
+![image|625x500, 50%](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/docs/assets/fry.png)
 
 Anyway;
 
@@ -355,15 +341,15 @@ GitHub offers Container Registry pretty much free of charge. You just need to op
 
 ### GitHub Actions
 
-Unfortunately, I have not had the time to implement a [matrix](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix) to have both `api` and `web` in the same GitHub Action Workflow. This is largly because I'm not sure how to nicely inject different environment variables to different matrix targets, yet. So for the the example below, we are using two workflows. One for api and one for web. I'll come back and update this post if I get a prettier way of doing it.
+Unfortunately, I have not had the time to look into having the same GitHub Action Workflow for handling different envioronments. So for the the example below, we are using one workflow for the `dev` environment/branch. I'll come back and update this post if I get a prettier way of doing it.
 
 **What the workflows essentially will do;**
 
 1. Set some environment variables
 2. Checkout source code
 3. Login to Container Registry (GitHub Container Registry)
-4. Build and push our image (_migrate and seed in the api image_)
-5. Checkout a deployment repository (ArgoCD best practices)
+4. Build and push our image (which also migrate and seed the database)
+5. Checkout a deployment repository (see [ArgoCD best practices](https://argoproj.github.io/argo-cd/user-guide/best_practices/))
 6. Use Kustomize to update our placeholder image to the image just built
 7. Generate a latest.yaml file (debugging and could be used for manual deploy)
 8. Commit changes back to the deployment repository
@@ -382,7 +368,7 @@ Unfortunately, I have not had the time to implement a [matrix](https://docs.gith
 
 I have explained these steps further in comments below.
 
-### `.github/workflows/redwoodjs-api-main.yaml`
+### `.github/workflows/redwoodjs-app-dev.yaml`
 
 ```yaml
 name: "redwoodjs-app"
@@ -390,17 +376,8 @@ name: "redwoodjs-app"
 on:
   push:
     branches:
+      - main
       - dev
-
-    paths:
-      - ".github/workflows/redwoodjs-app.yaml"
-      - "api/**"
-      - "web/**"
-      - "babel.config.js"
-      - "graphql.config.js"
-      - "package.json"
-      - "redwood.toml"
-      - "yarn.lock"
 
 env:
   # Build
@@ -413,16 +390,16 @@ env:
   # Container Registry
   CONTAINER_REGISTRY_HOSTNAME: ghcr.io
   CONTAINER_REGISTRY_USERNAME: jeliasson
-  CONTAINER_REGISTRY_PASSWORD: ${{ secrets.__SJORADDNINGSSALLSKAPETOPS_GITHUB_ACCESS_TOKEN }}
+  CONTAINER_REGISTRY_PASSWORD: ${{ secrets.__JELIASSON_GITHUB_ACCESS_TOKEN }}
   CONTAINER_REGISTRY_REPOSITORY: jeliasson
-  CONTAINER_REGISTRY_IMAGE_PREFIX: ssrs-se-portal
+  CONTAINER_REGISTRY_IMAGE_PREFIX: redwoodjs-app
 
   # Repository
   GIT_DEPLOY_REPOSITORY_NAME: jeliasson/redwoodjs-on-kubernetes
   GIT_DEPLOY_REPOSITORY_BRANCH: main
-  GIT_DEPLOY_REPOSITORY_AUTHOR_NAME: Sjöräddningssällskapet Operations
+  GIT_DEPLOY_REPOSITORY_AUTHOR_NAME: Johan Eliasson
   GIT_DEPLOY_REPOSITORY_AUTHOR_EMAIL: jeliasson@users.noreply.github.com
-  GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN: ${{ secrets.__SJORADDNINGSSALLSKAPETOPS_GITHUB_ACCESS_TOKEN }}
+  GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN: ${{ secrets.__JELIASSON_GITHUB_ACCESS_TOKEN }}
 
 jobs:
   #
@@ -442,12 +419,16 @@ jobs:
           - platform: web
 
     steps:
+
+      # Checkout source code
       - name: Checkout source code
         uses: actions/checkout@v2
 
+      # Setup Docker using buildx-action
       - name: Setup Docker
         uses: docker/setup-buildx-action@v1
 
+      # Login to Docker Container Registry
       - name: Docker login
         uses: docker/login-action@v1
         with:
@@ -455,6 +436,7 @@ jobs:
           username: ${{ env.CONTAINER_REGISTRY_USERNAME }}
           password: ${{ env.CONTAINER_REGISTRY_PASSWORD }}
 
+      # Build Docker image with a :latest and :<git sha> tag
       - name: Docker build
         uses: docker/build-push-action@v2
         with:
@@ -487,6 +469,7 @@ jobs:
           - platform: web
 
     steps:
+      # Checkout deployment repository
       - name: Checkout source code
         uses: actions/checkout@v2
         with:
@@ -495,6 +478,7 @@ jobs:
           ref: ${{ env.GIT_DEPLOY_REPOSITORY_BRANCH }}
           token: ${{ env.GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN }}
 
+      # Login to Docker Container Registry
       - name: Docker login
         uses: docker/login-action@v1
         with:
@@ -502,21 +486,26 @@ jobs:
           username: ${{ env.CONTAINER_REGISTRY_USERNAME }}
           password: ${{ env.CONTAINER_REGISTRY_PASSWORD }}
 
+      # Save these Docker credentials to the deployment repository
+      # It will be used in Kustomize to generate a Kubernetes secret for the container registry
       - name: Save Container Registry credentials
         run: |
           cat $HOME/.docker/config.json |                                         \
             jq 'del(.credsStore) | del(.HttpHeaders)' >                           \
             kubernetes/overlays/${RUNTIME_ENV}/secrets/.dockerconfigjson
 
+      # Setup Kustomize
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v1
 
+      # Use Kustomize to update the image placeholder in the Kustomize manifest file
       - name: Set Docker image
         run: |
           cd kubernetes/overlays/${RUNTIME_ENV}
           kustomize edit set image placeholder/${{ matrix.platform }}=${CONTAINER_REGISTRY_HOSTNAME}/${CONTAINER_REGISTRY_REPOSITORY}/${CONTAINER_REGISTRY_IMAGE_PREFIX}-${{ matrix.platform }}-${{ env.RUNTIME_ENV }}:${GITHUB_SHA}
           cat kustomization.yaml
 
+      # For debugging purposes, create a latest.yaml file
       - name: Generate Kubernetes latest manifest
         run: |
           cd kubernetes/overlays/${RUNTIME_ENV}
@@ -524,168 +513,7 @@ jobs:
           printf '%s\n%s\n' "# Generated with Kustomize at $(date)" "$(cat latest.yaml)" > latest.yaml
           cat latest.yaml
 
-      - name: Commit and push changes
-        uses: EndBug/add-and-commit@v6
-        with:
-          author_name: ${{ env.GIT_DEPLOY_REPOSITORY_AUTHOR_NAME }}
-          author_email: ${{ env.GIT_DEPLOY_REPOSITORY_AUTHOR_EMAIL }}
-          branch: ${{ env.GIT_DEPLOY_REPOSITORY_BRANCH }}
-          message: "[ci] Deployed ${{ github.repository }}@${{ github.sha }}: ${{ github.event.head_commit.message }}"
-          pull_strategy: "--no-ff"
-          push: true
-          token: ${{ env.GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN }}
-```
-
-### `.github/workflows/redwoodjs-api-main.yaml`
-
-```yaml
-name: "redwoodjs-web-main"
-
-on:
-  push:
-    branches:
-      - main
-
-    paths:
-      - ".github/workflows/redwoodjs-web-main.yaml"
-      - "web/**"
-      - "babel.config.js"
-      - "graphql.config.js"
-      - "package.json"
-      - "redwood.toml"
-      - "yarn.lock"
-env:
-  #
-  # Application
-  #
-
-  # Platform
-  PLATFORM_NAME: web
-  PLATFORM_ENVIRONMENT: main
-
-  # Build
-  NODE_ENV: "production"
-  RUNTIME_ENV: "main"
-
-  #
-  # Storage
-  #
-
-  # Container Registry
-  CONTAINER_REGISTRY_HOSTNAME: ghcr.io
-  CONTAINER_REGISTRY_USERNAME: sydnodops
-  CONTAINER_REGISTRY_PASSWORD: ${{ secrets.__SYDNODOPS_GITHUB_ACCESS_TOKEN }}
-  CONTAINER_REGISTRY_REPOSITORY: sydnod
-  CONTAINER_REGISTRY_IMAGE_PREFIX: redwoodjs
-
-  #
-  # Deployment
-  #
-
-  # Repository
-  GIT_DEPLOY_REPOSITORY_NAME: sydnod/redwoodjs-deploy
-  GIT_DEPLOY_REPOSITORY_BRANCH: main
-  GIT_DEPLOY_REPOSITORY_AUTHOR_NAME: Sydnod Operations
-  GIT_DEPLOY_REPOSITORY_AUTHOR_EMAIL: sydnodops@users.noreply.github.com
-  GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN: ${{ secrets.__SYDNODOPS_GITHUB_ACCESS_TOKEN }}
-
-jobs:
-  #
-  # Build
-  #
-  build:
-    name: Build & Push
-    runs-on: ubuntu-20.04
-    timeout-minutes: 10
-    steps:
-      # We checkout our ArgoCD deployment repository
-      # This could be the same repository as the application source code, but one side-effect would be
-      # that there will be a new commit added after each workflow run. See ArgoCD best practices.
-      - name: Checkout source code
-        uses: actions/checkout@v2
-
-      - name: Setup Docker
-        uses: docker/se
-
-      # Login to container registry (GitHub Container Registry)
-      - name: Login to Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.CONTAINER_REGISTRY_HOSTNAME }}
-          username: ${{ env.CONTAINER_REGISTRY_USERNAME }}
-          password: ${{ env.CONTAINER_REGISTRY_PASSWORD }}
-
-      # Build and push web to Container Registry
-      - name: Build - Push
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          context: .
-          file: ./web/Dockerfile
-          build-args: |
-            NODE_ENV=${{ env.NODE_ENV }}
-            RUNTIME_ENV=${{ env.RUNTIME_ENV }}
-          tags: |
-            ${{ env.CONTAINER_REGISTRY_HOSTNAME }}/${{ env.CONTAINER_REGISTRY_REPOSITORY }}/${{ env.CONTAINER_REGISTRY_IMAGE_PREFIX }}-${{ env.PLATFORM_NAME }}-${{ env.PLATFORM_ENVIRONMENT }}:latest
-            ${{ env.CONTAINER_REGISTRY_HOSTNAME }}/${{ env.CONTAINER_REGISTRY_REPOSITORY }}/${{ env.CONTAINER_REGISTRY_IMAGE_PREFIX }}-${{ env.PLATFORM_NAME }}-${{ env.PLATFORM_ENVIRONMENT }}:${{ github.sha }}
-
-  #
-  # Configure
-  #
-  configure:
-    name: Configure
-    runs-on: ubuntu-20.04
-    timeout-minutes: 10
-    needs: [build]
-    steps:
-      # We checkout our ArgoCD deployment repository
-      - name: Checkout source code
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
-          repository: ${{ env.GIT_DEPLOY_REPOSITORY_NAME }}
-          ref: ${{ env.GIT_DEPLOY_REPOSITORY_BRANCH }}
-          token: ${{ env.GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN }}
-
-      # Login to container registry (GitHub Container Registry)
-      - name: Login to Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.CONTAINER_REGISTRY_HOSTNAME }}
-          username: ${{ env.CONTAINER_REGISTRY_USERNAME }}
-          password: ${{ env.CONTAINER_REGISTRY_PASSWORD }}
-
-      # We save the logged in user Docker credentials to be used for generating a Kubernetes secret
-      # This is somewhat part of ArgoCD, and for a manual installation not needed as we created
-      # our Secret in the Kubernetes manifest
-      - name: Save Container Registry credentials
-        run: |
-          cat $HOME/.docker/config.json |                                         \
-            jq 'del(.credsStore) | del(.HttpHeaders)' >                           \
-            kubernetes/overlays/${PLATFORM_ENVIRONMENT}/secrets/.dockerconfigjson
-
-      # We use a action to setup Kubernetes's Kustomize
-      - name: Setup Kustomize
-        uses: imranismail/setup-kustomize@v1
-
-      # We use Kustomize to change a placeholder image to the built and published docker image, tagging it with the git sha
-      - name: Bump image version
-        run: |
-          cd kubernetes/overlays/${PLATFORM_ENVIRONMENT}
-          kustomize edit set image placeholder/${PLATFORM_NAME}=${CONTAINER_REGISTRY_HOSTNAME}/${CONTAINER_REGISTRY_REPOSITORY}/${CONTAINER_REGISTRY_IMAGE_PREFIX}-${PLATFORM_NAME}-${{ env.PLATFORM_ENVIRONMENT }}:${GITHUB_SHA}
-          cat kustomization.yaml
-
-      # We use Kustomize to build a Kubernetes manifest named latest.yaml
-      # This is the file you would want to depoy to Kubernetes if you would do it without e.g. ArgoCD
-      # In this exmaple, we just have it as a debugging step to see what ArgoCD would generate using Kustomize
-      - name: Generate Kubernetes latest manifest
-        run: |
-          cd kubernetes/overlays/${PLATFORM_ENVIRONMENT}
-          kustomize build -o latest.yaml
-          printf '%s\n%s\n' "# Generated with Kustomize at $(date)" "$(cat latest.yaml)" > latest.yaml
-          cat latest.yaml
-
-      # Finally we commit the changes we've done using Kustomize back to the deployment repository
+      # Commit our changes (e.g. the updated image tag generated by Kustomize)
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v6
         with:
@@ -704,15 +532,16 @@ jobs:
 ...
 
 ## ArgoCD
+This is the web interface of Argo CD with a overview of the application we just deployed.
 ![ArgoCD deployment](docs/assets/example-argocd-deployment.png "ArgoCD deployment")
 
 ## Conclusion
 
-Well, this writing became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not a easy underataking for someone not working with DevOps, and there are some pieces here that is missing. What about ArgoCD? Deployment repository? A operations
+Well, this writing became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not a easy underataking for someone not working with DevOps, and there are some pieces here that is missing. Wth did ArgoCD do? Deployment repository? A operations account for doing the Git pushes?
 
 #### What can be done better
 
-- Make GitHub action more compact
+- Make GitHub action more compact and handle multiple environments. Right now, it's one per environment.
 - We are migrating and seeding our database after build, before image push and deployment to Kubernetes. This is not ideal, as the new database schema will be up before the new api is deployed.
 
 #### Going forward from here
