@@ -4,15 +4,19 @@ Hi all 👋
 
 After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired to finally take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes (with some neat tools around this) and GitHub Actions - this read might be just for you. Head's up tho; It's quite a lot of config. 🤓
 
-Also; While this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want to elaborate on some topics and I'm definitely open to make this implementation better.
+@thedavid initial reaction
+> And holy config files, Batman! So. Many.
+
+Also; While this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want to elaborate on some topics and I'm definitely down to make this implementation better.
 
 ### Table of Contents
 
-- [Docker](#Docker): Build, Migrate and Seed
+- [Docker](#Docker): Build RedwoodJS, migrate and seed
 - [Kubernetes](#Kubernetes): Tools and objects
 - [GitHub](#GitHub): GitHub Actions and GitHub Container Registry
 - [Result](#Result): The screenshot
-- [Conclution](#Conclution): The after thoughts
+- [Conclusion](#Conclusion): The after thoughts
+- [Resources](#Resources): The relevant files
 
 ## Docker
 
@@ -80,7 +84,7 @@ EXPOSE 8911
 ENTRYPOINT [ "yarn", "serve", "api", "--port", "8911", "--rootPath", "/api" ]
 ```
 
-Before we move over to the web side of things, did you notice how we where using `yarn serve api` in entrypoint along with a `--rootPath` argument? Without going into much depth in this post, head over to [Add rootPath to api-server](https://github.com/redwoodjs/redwood/issues/1693) to read about the motivation behind this. For now, make sure that your `redwoodjs.toml`'s `[web].apiProxyPath` directive is set to `/api`, e.g. like so;
+Before we move over to the web side of things, did you notice how we where using `yarn serve api` in the entrypoint along with a `--rootPath` argument? Without going into much depth in this post, head over to [Add rootPath to api-server](https://github.com/redwoodjs/redwood/issues/1693) to read about the motivation behind this. For now, make sure that your `redwoodjs.toml`'s `[web].apiProxyPath` directive is set to `/api`, e.g. like so;
 
 ```
 [web]
@@ -144,12 +148,11 @@ RUN ls -lA /usr/share/nginx/html
 EXPOSE 8910
 ```
 
-
 As we are running nginx as our web server, lets also bring in a nginx config. It's nothing fancy and mostly adding some caching of static assets. We also add header `X-Awesomeness` because we can, and not because we need to.
 
 ### `web/config/nginx/default.conf`
 
-```
+```nginx
 server {
     listen 8910 default_server;
     root /usr/share/nginx/html;
@@ -202,7 +205,7 @@ type: kubernetes.io/dockerconfigjson
 
 ### Deployments
 
-In these examples we are using a images from `ghcr.io` ([GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry)), defining the usual suspects (ports, match labels, replicas etc) and we are passing in relevant environment variables, such as `DATABASE_URL` to the api and such.
+In these examples we are pulling the images from [GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry) (the `ghcr.io` part), defining the usual suspects (ports, match labels, replicas etc) and we are passing in relevant environment variables, such as `DATABASE_URL` to the api and such.
 
 ```yaml
 apiVersion: apps/v1
@@ -341,9 +344,9 @@ GitHub offers Container Registry pretty much free of charge. You just need to op
 
 ### GitHub Actions
 
-Unfortunately, I have not had the time to look into having the same GitHub Action Workflow for handling different envioronments. So for the the example below, we are using one workflow for the `dev` environment/branch. I'll come back and update this post if I get a prettier way of doing it.
+Unfortunately, I have not had the time to look into having the same GitHub Action Workflow for handling different envioronments. So for the example below, we are using one workflow for the `dev` environment/branch. I'll come back and update this post if I find a pretty way to do this.
 
-**What the workflows essentially will do;**
+**What the workflows essentially do;**
 
 1. Set some environment variables
 2. Checkout source code
@@ -356,11 +359,11 @@ Unfortunately, I have not had the time to look into having the same GitHub Actio
 
 **What happens after (in ArgoCD) that is not covered in this post;**
 
-1. ArgoCD will pickup the repository changes
+1. ArgoCD will sync with deployment repository and pickup the repository changes
 2. Use Kustomize to build our Kubernetes manifests
 3. Sync these manifests with a target Kubernetes cluster
 
-**What you would want to do if you are not running ArgoCD or something similar;**
+**Alternative: What you would want to do if you are not running ArgoCD or something similar;**
 
 1. After step 4 (build and push our image) you want to use e.g. [a GitHub Action for Kubernetes](https://github.com/marketplace/actions/deploy-to-kubernetes-cluster) to;
 2. Login to the Kubernetes cluster using a `kubeconfig`
@@ -376,7 +379,6 @@ name: "redwoodjs-app"
 on:
   push:
     branches:
-      - main
       - dev
 
 env:
@@ -397,7 +399,7 @@ env:
   # Repository
   GIT_DEPLOY_REPOSITORY_NAME: jeliasson/redwoodjs-on-kubernetes
   GIT_DEPLOY_REPOSITORY_BRANCH: main
-  GIT_DEPLOY_REPOSITORY_AUTHOR_NAME: Johan Eliasson
+  GIT_DEPLOY_REPOSITORY_AUTHOR_NAME: jeliasson
   GIT_DEPLOY_REPOSITORY_AUTHOR_EMAIL: jeliasson@users.noreply.github.com
   GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN: ${{ secrets.__JELIASSON_GITHUB_ACCESS_TOKEN }}
 
@@ -511,7 +513,6 @@ jobs:
           cd kubernetes/overlays/${RUNTIME_ENV}
           kustomize build -o latest.yaml
           printf '%s\n%s\n' "# Generated with Kustomize at $(date)" "$(cat latest.yaml)" > latest.yaml
-          cat latest.yaml
 
       # Commit our changes (e.g. the updated image tag generated by Kustomize)
       - name: Commit and push changes
@@ -547,3 +548,12 @@ Well, this writing became much longer than I thought it would be. If you are sti
 #### Going forward from here
 
 - ArgoCD
+
+## Resources
+
+If you want the latest versions of the files described above, head over to the [jeliasson/redwoodjs-on-kubernetes](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev) repository. The most important ones;
+
+- [`.github/workflows/redwoodjs-app-dev.yaml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/.github/workflow/redwoodjs-app-dev.yaml)
+- [`api/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/api/Dockerfile)
+- [`web/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/web/Dockerfile)
+- [`web/config/nginx/default.conf`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/web/config/nginx/default.conf)
