@@ -36,10 +36,12 @@ RUN yarn rw build api
 # RUN yarn rw prisma migrate resolve --applied 20210311161829_baseline0
 
 # Migrate database
-RUN yarn rw prisma migrate deploy
+# This has been commented out in this example post
+# RUN yarn rw prisma migrate deploy
 
 # Seed database
-RUN yarn rw prisma db seed
+# This has been commented out in this example post
+# RUN yarn rw prisma db seed
 
 # Clean up
 RUN rm -rf ./api/src
