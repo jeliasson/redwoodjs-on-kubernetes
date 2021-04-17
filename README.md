@@ -346,7 +346,7 @@ GitHub offers Container Registry pretty much free of charge. You just need to op
 
 Unfortunately, I have not had the time to look into having the same GitHub Action Workflow for handling different envioronments. So for the example below, we are using one workflow for the `dev` environment/branch. I'll come back and update this post if I find a pretty way to do this.
 
-**What the workflows essentially do;**
+**What [the workflow](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/.github/workflows/redwoodjs-app-dev.yaml) essentially do;**
 
 1. Set some environment variables
 2. Checkout source code
@@ -392,7 +392,7 @@ env:
   # Container Registry
   CONTAINER_REGISTRY_HOSTNAME: ghcr.io
   CONTAINER_REGISTRY_USERNAME: jeliasson
-  CONTAINER_REGISTRY_PASSWORD: ${{ secrets.__JELIASSON_GITHUB_ACCESS_TOKEN }}
+  CONTAINER_REGISTRY_PASSWORD: ${{ secrets.__GITHUB_ACCESS_TOKEN }}
   CONTAINER_REGISTRY_REPOSITORY: jeliasson
   CONTAINER_REGISTRY_IMAGE_PREFIX: redwoodjs-app
 
@@ -401,7 +401,7 @@ env:
   GIT_DEPLOY_REPOSITORY_BRANCH: main
   GIT_DEPLOY_REPOSITORY_AUTHOR_NAME: jeliasson
   GIT_DEPLOY_REPOSITORY_AUTHOR_EMAIL: jeliasson@users.noreply.github.com
-  GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN: ${{ secrets.__JELIASSON_GITHUB_ACCESS_TOKEN }}
+  GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN: ${{ secrets.__GITHUB_ACCESS_TOKEN }}
 
 jobs:
   #
@@ -525,6 +525,7 @@ jobs:
           pull_strategy: "--no-ff"
           push: true
           token: ${{ env.GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN }}
+
 ```
 
 ## Result
@@ -538,22 +539,26 @@ This is the web interface of Argo CD with a overview of the application we just 
 
 ## Conclusion
 
-Well, this writing became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not a easy underataking for someone not working with DevOps, and there are some pieces here that is missing. Wth did ArgoCD do? Deployment repository? A operations account for doing the Git pushes?
+Well, this writing became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not a easy underataking for someone not working or intrested in DevOps, and there are some pieces here that is missing. Wth did ArgoCD do? Deployment repository? A operations account for doing the Git pushes?
 
-#### What can be done better
+Anyway, we got ourself a RedwoodJS application running in Kubernetes.
 
-- Make GitHub action more compact and handle multiple environments. Right now, it's one per environment.
-- We are migrating and seeding our database after build, before image push and deployment to Kubernetes. This is not ideal, as the new database schema will be up before the new api is deployed.
+**What can be done better**
 
-#### Going forward from here
+- Make the Github workflow more compact and handle multiple environments. Right now, it's one per environment.
+- We are migrating and seeding our database after build, before image push and deployment to Kubernetes. This is not ideal, as the new database schema will be up before the new api is deployed. A better way of doing this would be e.g. a [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) that would have a small footprint with Prisma installed.
+
+**Going forward from here**
 
 - ArgoCD
+- Put the web in front of a CDN. The logic for deployment and purging old cache could be done with a [GitHub Action](https://github.com/marketplace?type=actions&query=cdn) or in a [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
 
 ## Resources
 
 If you want the latest versions of the files described above, head over to the [jeliasson/redwoodjs-on-kubernetes](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev) repository. The most important ones;
 
-- [`.github/workflows/redwoodjs-app-dev.yaml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/.github/workflow/redwoodjs-app-dev.yaml)
+- [`.github/workflows/redwoodjs-app-dev.yaml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/.github/workflows/redwoodjs-app-dev.yaml)
 - [`api/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/api/Dockerfile)
 - [`web/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/web/Dockerfile)
 - [`web/config/nginx/default.conf`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/web/config/nginx/default.conf)
+- [`redwood.toml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/redwood.toml)
