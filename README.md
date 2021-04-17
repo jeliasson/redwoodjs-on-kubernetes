@@ -4,10 +4,7 @@ Hi all 👋
 
 After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired to finally take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes (with some neat tools around this) and GitHub Actions - this read might be just for you. Head's up tho; It's quite a lot of config. 🤓
 
-@thedavid initial reaction
-> And holy config files, Batman! So. Many.
-
-Also; While this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want to elaborate on some topics and I'm definitely down to make this implementation better.
+Also; while this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want to elaborate on some topics and I'm definitely down to make this implementation better.
 
 ### Table of Contents
 
@@ -332,7 +329,7 @@ spec:
 
 So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we automate and deploy all this? Personally I give GitHub my money any day. Ironically, and a large thanks to Microsoft acquiring GitHub and the compute power that come with that, all the stuff we need is free. Regardless, here is this posts meme to illustrate my point.
 
-![image|625x500, 50%](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/docs/assets/fry.png)
+![fry|625x500, 50%](docs/assets/fry.png "Fry")
 
 Anyway;
 
