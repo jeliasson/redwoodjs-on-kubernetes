@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@redwoodjs/api": "^0.29.0"
+    "@redwoodjs/api": "^0.30.1-canary.23",
+    "@redwoodjs/api-server": "^0.30.1-canary.23"
   }
 }
