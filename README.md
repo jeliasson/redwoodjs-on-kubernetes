@@ -2,7 +2,7 @@
 
 Hi all 👋
 
-After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired to finally take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes (with some neat tools around this) and GitHub Actions - this read might be just for you. Head's up tho; It's quite a lot of config. 🤓
+After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired and decided take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes (with some neat tools around this) with GitHub Actions as CI/CD pipe - this read might be just for you. Head's up tho; It's quite a lot of config. 🤓
 
 Also; while this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want to elaborate on some topics and I'm definitely down to make this implementation better.
 
@@ -11,7 +11,7 @@ Also; while this is a working implementation that currently supports a productio
 - [Docker](#Docker): Build RedwoodJS, migrate and seed
 - [Kubernetes](#Kubernetes): Tools and objects
 - [GitHub](#GitHub): GitHub Actions and GitHub Container Registry
-- [Result](#Result): The screenshot
+- [Result](#Result): The screenshots
 - [Conclusion](#Conclusion): The after thoughts
 - [Resources](#Resources): The relevant files
 
@@ -185,7 +185,7 @@ server {
 
 Now for the fun part (at least for some): Kubernetes.
 
-I suggest using [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/) to build and generate your Kubernetes manifest file. However, in the spirit of keeping this post simpler I will just document some of the generated Kubernetes objects. That being said, feel free to DM me for the relevant Kustomize files I use. Furthermore, I have removed the resource limiting for brevity and is using [Kubernetes Nginx Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) for the Ingress.
+I suggest using [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/) to build and generate your Kubernetes manifest file. However, in the spirit of keeping this post simpler I will just document some of the generated Kubernetes objects. Feel free to DM me for the relevant Kustomize files I use. Furthermore, I have removed the [Resource Limiting](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) for brevity and is using [Kubernetes Nginx Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) for the Ingress.
 
 ### Secrets
 
@@ -333,6 +333,8 @@ So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we au
 
 ![fry|625x500, 50%](docs/assets/fry.png "Fry")
 
+@mojombo - So... if you have any pull at GitHub, [@jeliasson](https://github.com/jeliasson) would not say no to a invite to [Codespaces](https://github.com/features/codespaces) *wink* *wink*
+
 Anyway;
 
 We will use [GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry) to store our Docker images, and we use [GitHub Actions](https://github.com/features/actions) to build- push- and deploy our application to Kubernetes. Before we jump into the GitHub Actions part of things, I have a confession to make; I also use [ArgoCD](https://argoproj.github.io/argo-cd/) since about a year back. If you are running Kubernetes and not running ArgoCD (or something equivalent) I'm not sure what you are doing 😅 Just kidding! It's great tho. Point being, we will use a ArgoCD deployment in below examples. I will briefly explain what you could do as a alternative.
@@ -370,23 +372,22 @@ Unfortunately, I have not had the time to look into having the same GitHub Actio
 
 I have explained these steps further in comments below.
 
-### `.github/workflows/redwoodjs-app-dev.yaml`
+### `.github/workflows/redwoodjs-app-main.yaml`
 
 ```yaml
-name: "redwoodjs-app"
+# Force redeploy
+
+name: "redwoodjs-app-main"
 
 on:
   push:
     branches:
-      - dev
+      - main
 
 env:
   # Build
   NODE_ENV: "development"
-  RUNTIME_ENV: "dev"
-
-  # API
-  API_DATABASE_URL: ${{ secrets.__DEV_DATABASE_URL }}
+  RUNTIME_ENV: "main"
 
   # Container Registry
   CONTAINER_REGISTRY_HOSTNAME: ghcr.io
@@ -396,7 +397,7 @@ env:
   CONTAINER_REGISTRY_IMAGE_PREFIX: redwoodjs-app
 
   # Repository
-  GIT_DEPLOY_REPOSITORY_NAME: jeliasson/redwoodjs-on-kubernetes
+  GIT_DEPLOY_REPOSITORY_NAME: jeliasson/redwoodjs-on-kubernetes-deploy
   GIT_DEPLOY_REPOSITORY_BRANCH: main
   GIT_DEPLOY_REPOSITORY_AUTHOR_NAME: jeliasson
   GIT_DEPLOY_REPOSITORY_AUTHOR_EMAIL: jeliasson@users.noreply.github.com
@@ -416,7 +417,7 @@ jobs:
         platform: [api, web]
         include:
           - platform: api
-            DATABASE_URL: __DEV_DATABASE_URL
+            DATABASE_URL: __MAIN_DATABASE_URL
           - platform: web
 
     steps:
@@ -524,7 +525,6 @@ jobs:
           pull_strategy: "--no-ff"
           push: true
           token: ${{ env.GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN }}
-
 ```
 
 ## Result
@@ -562,9 +562,9 @@ I will be the first to acknowledge that this is quite a tedious setup.
 
 ## Resources
 
-If you want the latest versions of the files described above, head over to the [jeliasson/redwoodjs-on-kubernetes](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev) repository. The most important ones;
+If you want the latest versions of the files described above, head over to the [repository](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main). The most important ones;
 
-- [`.github/workflows/redwoodjs-app-dev.yaml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/.github/workflows/redwoodjs-app-dev.yaml)
+- [`.github/workflows/redwoodjs-app-main.yaml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/.github/workflows/redwoodjs-app-main.yaml)
 - [`api/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/api/Dockerfile)
 - [`web/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/web/Dockerfile)
 - [`web/config/nginx/default.conf`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/web/config/nginx/default.conf)
