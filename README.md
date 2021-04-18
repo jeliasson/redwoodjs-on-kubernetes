@@ -2,7 +2,7 @@
 
 Hi all 👋
 
-After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired and decided to take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes (with some neat tools around this) with GitHub Actions as CI/CD pipe - this read might be just for you. Head's up though; It's quite a lot of config. 🤓
+After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired and decided to take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes with GitHub Actions - this read might be just for you. Head's up though; It's quite a lot of config. 🤓
 
 Also; while this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want to elaborate on some topics and I'm definitely down to make this implementation better.
 
@@ -17,7 +17,7 @@ Also; while this is a working implementation that currently supports a productio
 
 ## Docker
 
-We will use Docker to containerize our Redwood application, and in this implementation we will have two images; one for `api` and one for `web`. These Dockerfiles are pretty straight-forward with some comments to instructions.
+We will use Docker to containerize our Redwood application, and in this implementation we will have two images; one for `api` and one for `web`. These Dockerfiles are pretty straight-forward, with some comments to instructions.
 
 ### `api/Dockerfile`
 
@@ -147,7 +147,7 @@ RUN ls -lA /usr/share/nginx/html
 EXPOSE 8910
 ```
 
-As we are running nginx as our web server, lets also bring in a nginx config. It's nothing fancy and mostly adding some caching of static assets. We also add header `X-Awesomeness` because we can, and not because we need to.
+As we are running nginx as our web server, lets also bring in a nginx config. It's nothing fancy and mostly adding some caching of static assets. We add header `X-Awesomeness` because we can, not because we need to.
 
 #### `web/config/nginx/default.conf`
 
@@ -185,7 +185,7 @@ server {
 
 Now for the fun part (at least for some): Kubernetes.
 
-I suggest using [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/) to build and generate your Kubernetes manifest file. However, in the spirit of keeping this post simpler I will just document some of the generated Kubernetes objects. Feel free to DM me for the relevant Kustomize files I use. Furthermore, I have removed the [Resource Limiting](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) for brevity and using [Kubernetes Nginx Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) for the Ingress.
+I suggest using [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/) to build and generate your Kubernetes manifest file. However, in the spirit of keeping complexity down, I will just document some of the generated Kubernetes objects. Feel free to DM me for the relevant Kustomize files I use. Furthermore, I have removed the [Resource Limiting](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) for brevity and using [Kubernetes Nginx Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) for the Ingress.
 
 ### Secrets
 
@@ -204,7 +204,7 @@ type: kubernetes.io/dockerconfigjson
 
 ### Deployments
 
-In these examples we are pulling the images from [GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry) (the `ghcr.io` part), defining the usual suspects (ports, match labels, replicas etc) and we are passing in relevant environment variables, such as `DATABASE_URL` to the api and such.
+In these examples we are pulling the images from [GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry) (the `ghcr.io` part), defining the usual suspects (ports, match labels, replicas etc) and we are passing in relevant environment variables, such as `DATABASE_URL` to the api.
 
 ```yaml
 apiVersion: apps/v1
@@ -298,7 +298,7 @@ spec:
 
 ### Ingress
 
-This ingress will route `/` to the web pods, and `/api` to the api pods and make sure we issue a SSL/TLS certificate.
+This ingress will route `/` to the web pods and `/api` to the api pods, and make sure we issue a SSL/TLS certificate using [cert-manager](https://cert-manager.io/docs/tutorials/acme/ingress/).
 
 ```yaml
 apiVersion: networking.k8s.io/v1beta1
@@ -329,7 +329,7 @@ spec:
 
 ## GitHub
 
-So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we automate and deploy all this? Personally I'd give GitHub my money any day. Ironically, and a large thanks to Microsoft acquiring GitHub and the compute power that come with that, all the stuff we need is free. Regardless, here is this posts meme to illustrate my point.
+So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we automate and deploy all this? Personally I'd give GitHub my money any day. Ironically, and a large thanks to Microsoft acquiring GitHub and the compute power that came with that, all the stuff we need is free. Regardless, here is this posts meme to illustrate my point.
 
 ![fry|625x500, 50%](docs/assets/fry.png "Fry")
 
@@ -535,7 +535,13 @@ Our workflow pipeline ran successfully and looks ✅
 ![GitHub Actions](docs/assets/github-actions.png "GitHub Actions")
 
 ### GitHub Container Registry
-Here we can see our built api image in GitHub Container Registry.
+Here we can see [our built api image](https://github.com/users/jeliasson/packages/container/package/redwoodjs-app-web-main) in GitHub Container Registry. Want to give it a test go?
+
+```docker
+docker run -it --rm \
+       -p 8910:8910 \
+       ghcr.io/jeliasson/redwoodjs-app-web-main:3a567f545902d35472b6c8d334439cb7b8a47c01
+```
 ![Github Container Registry](docs/assets/github-container-registry.png "Github Container Registry")
 
 ### ArgoCD
