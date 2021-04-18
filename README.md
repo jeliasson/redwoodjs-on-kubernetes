@@ -2,7 +2,7 @@
 
 Hi all 👋
 
-After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired and decided take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes (with some neat tools around this) with GitHub Actions as CI/CD pipe - this read might be just for you. Head's up tho; It's quite a lot of config. 🤓
+After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired and decided to take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes (with some neat tools around this) with GitHub Actions as CI/CD pipe - this read might be just for you. Head's up though; It's quite a lot of config. 🤓
 
 Also; while this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want to elaborate on some topics and I'm definitely down to make this implementation better.
 
@@ -83,7 +83,7 @@ EXPOSE 8911
 ENTRYPOINT [ "yarn", "rw", "serve", "api", "--port", "8911", "--rootPath", "/api" ]
 ```
 
-Before we move over to the web side of things, did you notice how we where using `yarn rw serve api` in the entrypoint along with a `--rootPath` argument? Without going into much depth in this post, head over to [Add rootPath to api-server](https://github.com/redwoodjs/redwood/issues/1693) to read about the motivation behind this. For now, make sure that your `redwoodjs.toml`'s `[web].apiProxyPath` directive is set to `/api`, e.g. like so;
+Before we move over to the web side of things, did you notice how we were using `yarn rw serve api` in the entrypoint along with a `--rootPath` argument? Without going into much depth in this post, head over to [Add rootPath to api-server](https://github.com/redwoodjs/redwood/issues/1693) to read about the motivation behind this. For now, make sure that your `redwoodjs.toml`'s `[web].apiProxyPath` directive is set to `/api`, e.g. like so;
 
 ```
 [web]
@@ -185,7 +185,7 @@ server {
 
 Now for the fun part (at least for some): Kubernetes.
 
-I suggest using [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/) to build and generate your Kubernetes manifest file. However, in the spirit of keeping this post simpler I will just document some of the generated Kubernetes objects. Feel free to DM me for the relevant Kustomize files I use. Furthermore, I have removed the [Resource Limiting](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) for brevity and is using [Kubernetes Nginx Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) for the Ingress.
+I suggest using [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/) to build and generate your Kubernetes manifest file. However, in the spirit of keeping this post simpler I will just document some of the generated Kubernetes objects. Feel free to DM me for the relevant Kustomize files I use. Furthermore, I have removed the [Resource Limiting](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) for brevity and using [Kubernetes Nginx Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) for the Ingress.
 
 ### Secrets
 
@@ -329,7 +329,7 @@ spec:
 
 ## GitHub
 
-So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we automate and deploy all this? Personally I give GitHub my money any day. Ironically, and a large thanks to Microsoft acquiring GitHub and the compute power that come with that, all the stuff we need is free. Regardless, here is this posts meme to illustrate my point.
+So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we automate and deploy all this? Personally I'd give GitHub my money any day. Ironically, and a large thanks to Microsoft acquiring GitHub and the compute power that come with that, all the stuff we need is free. Regardless, here is this posts meme to illustrate my point.
 
 ![fry|625x500, 50%](docs/assets/fry.png "Fry")
 
@@ -337,7 +337,7 @@ So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we au
 
 Anyway;
 
-We will use [GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry) to store our Docker images, and we use [GitHub Actions](https://github.com/features/actions) to build- push- and deploy our application to Kubernetes. Before we jump into the GitHub Actions part of things, I have a confession to make; I also use [ArgoCD](https://argoproj.github.io/argo-cd/) since about a year back. If you are running Kubernetes and not running ArgoCD (or something equivalent) I'm not sure what you are doing 😅 Just kidding! It's great tho. Point being, we will use a ArgoCD deployment in below examples. I will briefly explain what you could do as a alternative.
+We will use [GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry) to store our Docker images, and we use [GitHub Actions](https://github.com/features/actions) to build- push- and deploy our application to Kubernetes. Before we jump into the GitHub Actions part of things, I have a confession to make; I also use [ArgoCD](https://argoproj.github.io/argo-cd/) since about a year back. If you are running Kubernetes and not running ArgoCD (or something equivalent) I'm not sure what you are doing 😅 Just kidding! It's great though. Point being, we will use a ArgoCD deployment in below examples. I will briefly explain what you could do as a alternative.
 
 ### GitHub Container Registry
 
@@ -345,9 +345,9 @@ GitHub offers Container Registry pretty much free of charge. You just need to op
 
 ### GitHub Actions
 
-Unfortunately, I have not had the time to look into having the same GitHub Action Workflow for handling different envioronments. So for the example below, we are using one workflow for the `dev` environment/branch. I'll come back and update this post if I find a pretty way to do this.
+Unfortunately, I have not had the time to look into having the same GitHub Action Workflow for handling different environments. So for the example below, we are using one workflow for the `dev` environment/branch. I'll come back and update this post if I find a pretty way to do this.
 
-**What [the workflow](https://github.com/jeliasson/redwoodjs-on-kubernetes/blob/main/.github/workflows/redwoodjs-app-main.yaml) essentially do;**
+**What [the workflow](https://github.com/jeliasson/redwoodjs-on-kubernetes/blob/main/.github/workflows/redwoodjs-app-main.yaml) essentially does;**
 
 1. Set some environment variables
 2. Checkout source code
@@ -364,7 +364,7 @@ Unfortunately, I have not had the time to look into having the same GitHub Actio
 2. Use Kustomize to build our Kubernetes manifests
 3. Sync these manifests with a target Kubernetes cluster
 
-**Alternative: What you would want to do if you are not running ArgoCD or something similar;**
+**Alternative: What you could do if you are not running ArgoCD or something similar;**
 
 1. After step 4 (build and push our image) you want to use e.g. [a GitHub Action for Kubernetes](https://github.com/marketplace/actions/deploy-to-kubernetes-cluster) to;
 2. Login to the Kubernetes cluster using a `kubeconfig`
@@ -539,7 +539,7 @@ Here we can see our built api image in GitHub Container Registry.
 ![Github Container Registry](docs/assets/github-container-registry.png "Github Container Registry")
 
 ### ArgoCD
-This is the web interface of Argo CD with a overview of the application we just deployed. In this cluster we have two ingress controllers, load balanced on the very edge of the Kubernetes cluster.
+This is the web interface of Argo CD with an overview of the application we just deployed. In this cluster we have two ingress controllers, load balanced on the very edge of the Kubernetes cluster.
 ![ArgoCD deployment](docs/assets/argocd.png "ArgoCD deployment")
 
 ### Are we live yet?
@@ -550,7 +550,7 @@ Yes, [we are live](https://jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.
 
 ## Conclusion
 
-Well, this writing became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not a easy underataking for someone not working or intrested in DevOps, and there are some pieces here that is missing. Wth did ArgoCD do? Deployment repository? A operations account for doing the Git pushes?
+Well, this became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not an easy undertaking for someone not working or interested in DevOps, and there are some missing pieces here. Wth did ArgoCD do? Deployment repository? A operations account for doing the Git pushes?
 
 Anyway, we got ourself a RedwoodJS application running in Kubernetes and it costs me absolutely nothing (as I already have a cluster for other stuff) besides some sweat and tears along the way to make it play nice.
 
