@@ -60,10 +60,12 @@ RUN yarn rw build api
 # RUN yarn rw prisma migrate resolve --applied 20210311161829_baseline0
 
 # Migrate database
-RUN yarn rw prisma migrate deploy
+# This has been commented out in this example post
+# RUN yarn rw prisma migrate deploy
 
 # Seed database
-RUN yarn rw prisma db seed
+# This has been commented out in this example post
+# RUN yarn rw prisma db seed
 
 # Clean up
 RUN rm -rf ./api/src
@@ -78,8 +80,7 @@ WORKDIR /app/api
 EXPOSE 8911
 
 # Entrypoint to @redwoodjs/api-server binary
-ENTRYPOINT [ "yarn", "serve", "api", "--port", "8911", "--rootPath", "/api" ]
-
+ENTRYPOINT [ "yarn", "rw", "serve", "api", "--port", "8911", "--rootPath", "/api" ]
 ```
 
 Before we move over to the web side of things, did you notice how we where using `yarn serve api` in the entrypoint along with a `--rootPath` argument? Without going into much depth in this post, head over to [Add rootPath to api-server](https://github.com/redwoodjs/redwood/issues/1693) to read about the motivation behind this. For now, make sure that your `redwoodjs.toml`'s `[web].apiProxyPath` directive is set to `/api`, e.g. like so;
