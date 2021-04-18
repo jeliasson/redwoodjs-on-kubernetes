@@ -91,7 +91,7 @@ Before we move over to the web side of things, did you notice how we where using
   apiProxyPath = "/api"
 ```
 
-### `web/Dockerfile`
+#### `web/Dockerfile`
 
 ```dockerfile
 ###########################################################################################
@@ -149,7 +149,7 @@ EXPOSE 8910
 
 As we are running nginx as our web server, lets also bring in a nginx config. It's nothing fancy and mostly adding some caching of static assets. We also add header `X-Awesomeness` because we can, and not because we need to.
 
-### `web/config/nginx/default.conf`
+#### `web/config/nginx/default.conf`
 
 ```nginx
 server {
@@ -372,7 +372,7 @@ Unfortunately, I have not had the time to look into having the same GitHub Actio
 
 I have explained these steps further in comments below.
 
-### `.github/workflows/redwoodjs-app-main.yaml`
+#### `.github/workflows/redwoodjs-app-main.yaml`
 
 ```yaml
 # Force redeploy
@@ -530,7 +530,7 @@ jobs:
 ## Result
 
 ### GitHub Actions
-Our CI pipe ran successfully and looks ✅
+Our workflow pipeline ran successfully and looks ✅
 
 ![GitHub Actions](docs/assets/github-actions.png "GitHub Actions")
 
@@ -573,10 +573,10 @@ I will be the first to acknowledge that this is quite a tedious setup. [WiP]
 
 If you want the latest versions of the files described above, head over to the [repository](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main). The most important ones;
 
-- [`.github/workflows/redwoodjs-app-main.yaml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/.github/workflows/redwoodjs-app-main.yaml)
-- [`api/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/api/Dockerfile)
-- [`web/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/web/Dockerfile)
-- [`web/config/nginx/default.conf`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/web/config/nginx/default.conf)
-- [`redwood.toml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/redwood.toml)
+- [`.github/workflows/redwoodjs-app-main.yaml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/.github/workflows/redwoodjs-app-main.yaml)
+- [`api/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/api/Dockerfile)
+- [`web/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/web/Dockerfile)
+- [`web/config/nginx/default.conf`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/web/config/nginx/default.conf)
+- [`redwood.toml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/redwood.toml)
 
 I hope you found this read intresting. 👋
