@@ -528,25 +528,30 @@ jobs:
 
 ## Result
 
-## GitHub Actions
+### GitHub Actions
+Our CI pipe is healthy.
+
+### GitHub Container Registry
 ...
 
-## ArgoCD
-This is the web interface of Argo CD with a overview of the application we just deployed.
+### ArgoCD
+This is the web interface of Argo CD with a overview of the application we just deployed. In this cluster we have two ingress proxies load balanced on the very edge of the Kubernetes cluster.
 ![ArgoCD deployment](docs/assets/example-argocd-deployment.png "ArgoCD deployment")
 
 ## Conclusion
 
 Well, this writing became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not a easy underataking for someone not working or intrested in DevOps, and there are some pieces here that is missing. Wth did ArgoCD do? Deployment repository? A operations account for doing the Git pushes?
 
-Anyway, we got ourself a RedwoodJS application running in Kubernetes.
+Anyway, we got ourself a RedwoodJS application running in Kubernetes and it costs me absolutely nothing (as I already have a cluster for other stuff) besides some sweat and tears along the way to make it play nice.
 
 **What can be done better**
 
-- Make the Github workflow more compact and handle multiple environments. Right now, it's one per environment.
+- Make the Github workflow less complex and handle multiple environments.
 - We are migrating and seeding our database after build, before image push and deployment to Kubernetes. This is not ideal, as the new database schema will be up before the new api is deployed. A better way of doing this would be e.g. a [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) that would have a small footprint with Prisma installed.
 
 **Going forward from here**
+
+I will be the first to acknowledge that this is quite a tedious setup.
 
 - ArgoCD
 - Put the web in front of a CDN. The logic for deployment and purging old cache could be done with a [GitHub Action](https://github.com/marketplace?type=actions&query=cdn) or in a [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
