@@ -539,6 +539,9 @@ Our CI pipe is healthy.
 This is the web interface of Argo CD with a overview of the application we just deployed. In this cluster we have two ingress proxies load balanced on the very edge of the Kubernetes cluster.
 ![ArgoCD deployment](docs/assets/example-argocd-deployment.png "ArgoCD deployment")
 
+### Are we live yet?
+Yes, [we are live](https://jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.io/).
+
 ## Conclusion
 
 Well, this writing became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not a easy underataking for someone not working or intrested in DevOps, and there are some pieces here that is missing. Wth did ArgoCD do? Deployment repository? A operations account for doing the Git pushes?

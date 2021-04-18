@@ -1,6 +1,6 @@
 # Force redeploy
 
-name: "redwoodjs-app-dev"
+name: "redwoodjs-app-main"
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
 
 env:
   # Build
-  NODE_ENV: "development"
-  RUNTIME_ENV: "dev"
+  NODE_ENV: "production"
+  RUNTIME_ENV: "main"
 
   # Container Registry
   CONTAINER_REGISTRY_HOSTNAME: ghcr.io
@@ -40,7 +40,7 @@ jobs:
         platform: [api, web]
         include:
           - platform: api
-            DATABASE_URL: __DEV_DATABASE_URL
+            DATABASE_URL: __MAIN_DATABASE_URL
           - platform: web
 
     steps:
