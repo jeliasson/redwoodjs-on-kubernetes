@@ -189,7 +189,7 @@ I suggest using [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-o
 
 ### Secrets
 
-As our Docker images contains senstive information and likely to be hosted in a private Container Registry, we need to create a [Docker Registry config secret](https://kubernetes.io/docs/concepts/configuration/secret/#docker-config-secrets) that Kubernetes can use to pull down the imags. To export the secret and store it in a persistent file, run `kubectl get secret <my-container-registry-secret> -o yaml`. This should result in a secret like below.
+As our Docker images contains sensitive information and likely to be hosted in a private Container Registry, we need to create a [Docker Registry config secret](https://kubernetes.io/docs/concepts/configuration/secret/#docker-config-secrets) that Kubernetes can use to pull down the images. To export the secret and store it in a persistent file, run `kubectl get secret <my-container-registry-secret> -o yaml`. This should result in a secret like below.
 
 ```yaml
 apiVersion: v1
@@ -228,7 +228,7 @@ spec:
             - name: RUNTIME_ENV
               value: dev
             - name: DATABASE_URL
-              value: mysql://username:password@dbserver:3306/dbname
+              value: postgres://username:password@dbserver:5432/dbname
           image: ghcr.io/<your org>/redwoodjs-api-main:latest
           name: api
           ports:
@@ -347,7 +347,7 @@ GitHub offers Container Registry pretty much free of charge. You just need to op
 
 Unfortunately, I have not had the time to look into having the same GitHub Action Workflow for handling different envioronments. So for the example below, we are using one workflow for the `dev` environment/branch. I'll come back and update this post if I find a pretty way to do this.
 
-**What [the workflow](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/dev/.github/workflows/redwoodjs-app-dev.yaml) essentially do;**
+**What [the workflow](https://github.com/jeliasson/redwoodjs-on-kubernetes/blob/main/.github/workflows/redwoodjs-app-main.yaml) essentially do;**
 
 1. Set some environment variables
 2. Checkout source code
