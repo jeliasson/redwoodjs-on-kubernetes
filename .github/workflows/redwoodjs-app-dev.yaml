@@ -1,4 +1,6 @@
-name: "redwoodjs-app"
+# Force redeploy
+
+name: "redwoodjs-app-dev"
 
 on:
   push:
