@@ -9,7 +9,7 @@ on:
 
 env:
   # Build
-  NODE_ENV: "production"
+  NODE_ENV: "development"
   RUNTIME_ENV: "main"
 
   # Container Registry
