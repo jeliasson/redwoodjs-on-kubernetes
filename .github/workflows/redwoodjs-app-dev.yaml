@@ -5,7 +5,7 @@ name: "redwoodjs-app-dev"
 on:
   push:
     branches:
-      - dev
+      - disabled-on-dev
 
 env:
   # Build
