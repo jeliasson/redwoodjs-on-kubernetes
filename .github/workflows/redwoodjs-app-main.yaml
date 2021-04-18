@@ -5,7 +5,7 @@ name: "redwoodjs-app-main"
 on:
   push:
     branches:
-      - dev
+      - main
 
 env:
   # Build
