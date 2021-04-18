@@ -23,7 +23,7 @@ env:
   CONTAINER_REGISTRY_IMAGE_PREFIX: redwoodjs-app
 
   # Repository
-  GIT_DEPLOY_REPOSITORY_NAME: jeliasson/redwoodjs-on-kubernetes
+  GIT_DEPLOY_REPOSITORY_NAME: jeliasson/redwoodjs-on-kubernetes-deploy
   GIT_DEPLOY_REPOSITORY_BRANCH: main
   GIT_DEPLOY_REPOSITORY_AUTHOR_NAME: jeliasson
   GIT_DEPLOY_REPOSITORY_AUTHOR_EMAIL: jeliasson@users.noreply.github.com
