@@ -2,9 +2,9 @@
 
 Hi all 👋
 
-After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired and decided to take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person that likes to get your hands dirty with Docker, Kubernetes with GitHub Actions - this read might be just for you. Head's up though; It's quite a lot of config. 🤓
+After seeing some posts about self-hosting on [Heroku](https://community.redwoodjs.com/t/self-host-on-heroku/1765) and [Render](https://community.redwoodjs.com/t/using-render-com-instead-of-netlify-and-heroku/728/4) I got inspired and decided to take a swing at writing about **Self-hosting RedwoodJS on Kubernetes**. If you are a serverfull person who likes to get your hands dirty with Docker, Kubernetes with GitHub Actions - this read might be just for you. Heads-up though; It's quite a lot of config. 🤓
 
-Also; while this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want to elaborate on some topics and I'm definitely down to make this implementation better.
+Also; while this is a working implementation that currently supports a production application (maybe a future #show-tell), it leaves some decisions to make on your part. That being said, let me know if you want me to elaborate on some topics and I'm definitely down to make this implementation better.
 
 ### Table of Contents
 
@@ -17,7 +17,7 @@ Also; while this is a working implementation that currently supports a productio
 
 ## Docker
 
-We will use Docker to containerize our Redwood application, and in this implementation we will have two images; one for `api` and one for `web`. These Dockerfiles are pretty straight-forward, with some comments to instructions.
+We will use Docker to containerize our Redwood application, and in this implementation we will have two images; one for `api` and one for `web`. These Dockerfiles are pretty straight-forward, with some comments to the instructions.
 
 ### `api/Dockerfile`
 
@@ -83,7 +83,7 @@ EXPOSE 8911
 ENTRYPOINT [ "yarn", "rw", "serve", "api", "--port", "8911", "--rootPath", "/api" ]
 ```
 
-Before we move over to the web side of things, did you notice how we were using `yarn rw serve api` in the entrypoint along with a `--rootPath` argument? Without going into much depth in this post, head over to [Add rootPath to api-server](https://github.com/redwoodjs/redwood/issues/1693) to read about the motivation behind this. For now, make sure that your `redwoodjs.toml`'s `[web].apiProxyPath` directive is set to `/api`, e.g. like so;
+Before we move over to the web side of things, did you notice how we were using `yarn rw serve api` in the entrypoint along with a `--rootPath` argument? Without going into much depth in this post, head over to [Add rootPath to api-server](https://github.com/redwoodjs/redwood/issues/1693) to read about the motivation behind this. For now, make sure that your `redwoodjs.toml`'s `[web].apiProxyPath` directive is set to `/api`, i.e. like so;
 
 ```
 [web]
@@ -110,7 +110,7 @@ ENV RUNTIME_ENV=$RUNTIME_ENV
 # Set workdir
 WORKDIR /app
 
-#COPY api .
+# COPY api .
 COPY web web
 COPY .nvmrc .
 COPY babel.config.js .
@@ -147,7 +147,7 @@ RUN ls -lA /usr/share/nginx/html
 EXPOSE 8910
 ```
 
-As we are running nginx as our web server, lets also bring in a nginx config. It's nothing fancy and mostly adding some caching of static assets. We add header `X-Awesomeness` because we can, not because we need to.
+As we are running nginx as our web server, lets also bring in an nginx config. It's nothing fancy and mostly adding some caching of static assets. We add header `X-Awesomeness` because we can, not because we need to.
 
 #### `web/config/nginx/default.conf`
 
@@ -189,7 +189,7 @@ I suggest using [Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-o
 
 ### Secrets
 
-As our Docker images contains sensitive information and likely to be hosted in a private Container Registry, we need to create a [Docker Registry config secret](https://kubernetes.io/docs/concepts/configuration/secret/#docker-config-secrets) that Kubernetes can use to pull down the images. To export the secret and store it in a persistent file, run `kubectl get secret <my-container-registry-secret> -o yaml`. This should result in a secret like below.
+As our Docker images contains sensitive information and likely will be hosted in a private Container Registry, we need to create a [Docker Registry config secret](https://kubernetes.io/docs/concepts/configuration/secret/#docker-config-secrets) that Kubernetes can use to pull down the images. To export the secret and store it in a persistent file, run `kubectl get secret <my-container-registry-secret> -o yaml`. This should result in a secret like below.
 
 ```yaml
 apiVersion: v1
@@ -298,7 +298,7 @@ spec:
 
 ### Ingress
 
-This ingress will route `/` to the web pods and `/api` to the api pods, and make sure we issue a SSL/TLS certificate using [cert-manager](https://cert-manager.io/docs/tutorials/acme/ingress/).
+This ingress will route `/` to the web pods and `/api` to the api pods, and make sure we issue an SSL/TLS certificate using [cert-manager](https://cert-manager.io/docs/tutorials/acme/ingress/).
 
 ```yaml
 apiVersion: networking.k8s.io/v1beta1
@@ -333,11 +333,11 @@ So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we au
 
 ![fry|625x500, 50%](docs/assets/fry.png "Fry")
 
-@mojombo - So... if you have any pull at GitHub, [@jeliasson](https://github.com/jeliasson) would not say no to a invite to [Codespaces](https://github.com/features/codespaces) *wink* *wink*
+@mojombo - So... if you have any pull at GitHub, [@jeliasson](https://github.com/jeliasson) would not say no to an invite to [Codespaces](https://github.com/features/codespaces) *wink* *wink*
 
 Anyway;
 
-We will use [GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry) to store our Docker images, and we use [GitHub Actions](https://github.com/features/actions) to build- push- and deploy our application to Kubernetes. Before we jump into the GitHub Actions part of things, I have a confession to make; I also use [ArgoCD](https://argoproj.github.io/argo-cd/) since about a year back. If you are running Kubernetes and not running ArgoCD (or something equivalent) I'm not sure what you are doing 😅 Just kidding! It's great though. Point being, we will use a ArgoCD deployment in below examples. I will briefly explain what you could do as a alternative.
+We will use [GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry) to store our Docker images, and we use [GitHub Actions](https://github.com/features/actions) to build- push- and deploy our application to Kubernetes. Before we jump into the GitHub Actions part of things, I have a confession to make; I also use [ArgoCD](https://argoproj.github.io/argo-cd/) since about a year back. If you are running Kubernetes and not running ArgoCD (or something equivalent) I'm not sure what you are doing 😅 Just kidding! It's great though. Point being, we will use a ArgoCD deployment in the examples below. I will briefly explain what you could do as a alternative.
 
 ### GitHub Container Registry
 
@@ -556,7 +556,7 @@ Yes, [we are live](https://jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.
 
 ## Conclusion
 
-Well, this became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not an easy undertaking for someone not working or interested in DevOps, and there are some missing pieces here. Wth did ArgoCD do? Deployment repository? A operations account for doing the Git pushes?
+Well, this became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not an easy undertaking for someone not working with, or interested in, DevOps, and there are some missing pieces here. Wth did ArgoCD do? Deployment repository? An operations account for doing the Git pushes?
 
 Anyway, we got ourself a RedwoodJS application running in Kubernetes and it costs me absolutely nothing (as I already have a cluster for other stuff) besides some sweat and tears along the way to make it play nice.
 
@@ -565,14 +565,14 @@ Anyway, we got ourself a RedwoodJS application running in Kubernetes and it cost
 **What can be done better**
 
 - Make the Github workflow less complex and handle multiple environments.
-- We are migrating and seeding our database after build, before image push and deployment to Kubernetes. This is not ideal, as the new database schema will be up before the new api is deployed. A better way of doing this would be e.g. a [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) that would have a small footprint with Prisma installed.
+- We are migrating and seeding our database after build, before image push and deployment to Kubernetes. This is not ideal, as the new database schema will be up before the new api is deployed. A better way of doing this would be e.g. an [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) that would have a small footprint with Prisma installed.
 
 **Going forward from here**
 
 I will be the first to acknowledge that this is quite a tedious setup. [WiP]
 
 - ArgoCD
-- Put the web in front of a CDN. The logic for deployment and purging old cache could be done with a [GitHub Action](https://github.com/marketplace?type=actions&query=cdn) or in a [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
+- Put the web in front of a CDN. The logic for deployment and purging old cache could be done with a [GitHub Action](https://github.com/marketplace?type=actions&query=cdn) or in an [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
 - [...]
 
 ## Resources
