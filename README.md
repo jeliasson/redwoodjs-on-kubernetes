@@ -55,10 +55,6 @@ RUN yarn install --frozen-lockfile
 # Build
 RUN yarn rw build api
 
-# Set database baseline
-# We only need to do this once per database
-# RUN yarn rw prisma migrate resolve --applied 20210311161829_baseline0
-
 # Migrate database
 # This has been commented out in this example post
 # RUN yarn rw prisma migrate deploy
@@ -69,9 +65,6 @@ RUN yarn rw build api
 
 # Clean up
 RUN rm -rf ./api/src
-
-# Debugging
-RUN ls -lA ./api/dist
 
 # Set api as workdirectory
 WORKDIR /app/api
@@ -147,7 +140,7 @@ RUN ls -lA /usr/share/nginx/html
 EXPOSE 8910
 ```
 
-As we are running nginx as our web server, lets also bring in an nginx config. It's nothing fancy and mostly adding some caching of static assets. We add header `X-Awesomeness` because we can, not because we need to.
+As we are running nginx as our web server, lets also bring in a nginx config. It's nothing fancy and mostly adding some caching of static assets. We add header `X-Awesomeness` because we can, not because we need to.
 
 #### `web/config/nginx/default.conf`
 
@@ -345,7 +338,7 @@ GitHub offers Container Registry pretty much free of charge. You just need to op
 
 ### GitHub Actions
 
-Unfortunately, I have not had the time to look into having the same GitHub Action Workflow for handling different environments. So for the example below, we are using one workflow for the `dev` environment/branch. I'll come back and update this post if I find a pretty way to do this.
+Unfortunately, I have not had the time to look into having the same GitHub Action Workflow for handling different environments. So for the example below, we are using one workflow for the `main` environment/branch. I'll come back and update this post if I find a pretty way to do this.
 
 **What [the workflow](https://github.com/jeliasson/redwoodjs-on-kubernetes/blob/main/.github/workflows/redwoodjs-app-main.yaml) essentially does;**
 
@@ -556,11 +549,9 @@ Yes, [we are live](https://jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.
 
 ## Conclusion
 
-Well, this became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not an easy undertaking for someone not working with, or interested in, DevOps, and there are some missing pieces here. Wth did ArgoCD do? Deployment repository? An operations account for doing the Git pushes?
+Well, this became much longer than I thought it would be. If you are still reading this, thank you for bearing with me. Surely this is not an easy undertaking for someone not working with, or interested in, DevOps, and there are some missing pieces here. Wth did ArgoCD do? Deployment repository? Wat?
 
 Anyway, we got ourself a RedwoodJS application running in Kubernetes and it costs me absolutely nothing (as I already have a cluster for other stuff) besides some sweat and tears along the way to make it play nice.
-
-[WiP]
 
 **What can be done better**
 
@@ -569,11 +560,11 @@ Anyway, we got ourself a RedwoodJS application running in Kubernetes and it cost
 
 **Going forward from here**
 
-I will be the first to acknowledge that this is quite a tedious setup. [WiP]
+I will be the first to acknowledge that this is quite a tedious setup, but at the same time confirm that this (in some variation) what is required to deploy a application to a scalable cluster. There are many moving parts. For that, I salute all the amazing SaaS platforms out there that makes our lives easier that way. For me, this is part work and part a fun challange.
 
-- ArgoCD
-- Put the web in front of a CDN. The logic for deployment and purging old cache could be done with a [GitHub Action](https://github.com/marketplace?type=actions&query=cdn) or in an [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
-- [...]
+- ArgoCD: Make a documentation about the setup and how it works
+- CDN: Make sure the web is served by a cdn. The logic for deployment and purging old cache could be done with a [GitHub Action](https://github.com/marketplace?type=actions&query=cdn) or in an [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
+- ...not sure yet.
 
 ## Resources
 
@@ -584,5 +575,7 @@ If you want the latest versions of the files described above, head over to the [
 - [`web/Dockerfile`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/web/Dockerfile)
 - [`web/config/nginx/default.conf`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/web/config/nginx/default.conf)
 - [`redwood.toml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/redwood.toml)
+
+A shoutout to <a href="https://github.com/Tobbe" alt="Tobbe">Tobbe</a>, <a href="https://github.com/ajcwebdev" alt="ajcwebdev">Antony</a>, <a href="https://github.com/dac09" alt="dac09">Danny</a>, <a href="https://github.com/pi0neerpat" alt="pi0neerpat">Patrick</a> for their input. 💌
 
 I hope you found this read intresting. 👋
