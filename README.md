@@ -326,7 +326,7 @@ So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we au
 
 ![fry|625x500, 50%](docs/assets/fry.png "Fry")
 
-@mojombo - So... if you have any pull at GitHub, [@jeliasson](https://github.com/jeliasson) would not say no to an invite to [Codespaces](https://github.com/features/codespaces) *wink* *wink*
+[@mojombo](https://github.com/mojombo) - So... if you have any pull at GitHub, [@jeliasson](https://github.com/jeliasson) would not say no to an invite to [Codespaces](https://github.com/features/codespaces) *wink* *wink*
 
 Anyway;
 
@@ -542,7 +542,7 @@ This is the web interface of Argo CD with an overview of the application we just
 ![ArgoCD deployment](docs/assets/argocd.png "ArgoCD deployment")
 
 ### Are we live yet?
-Yes, [we are live](https://jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.io/).
+Yes, [we are live](https://jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.io/). And for a simple [api health](https://jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.io/api/health).
 
 ![Live](docs/assets/live.png "Live")
 
@@ -576,6 +576,6 @@ If you want the latest versions of the files described above, head over to the [
 - [`web/config/nginx/default.conf`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/web/config/nginx/default.conf)
 - [`redwood.toml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/redwood.toml)
 
-A shoutout to <a href="https://github.com/Tobbe" alt="Tobbe">Tobbe</a>, <a href="https://github.com/ajcwebdev" alt="ajcwebdev">Antony</a>, <a href="https://github.com/dac09" alt="dac09">Danny</a>, <a href="https://github.com/pi0neerpat" alt="pi0neerpat">Patrick</a> for their input. 💌
+A shoutout to [@Tobbe](https://github.com/Tobbe), [@ajcwebdev](https://github.com/Antony), [@dac09](https://github.com/dac09) and [@pi0neerpat](https://github.com/pi0neerpat) for their input. 💌
 
 I hope you found this read intresting. 👋
