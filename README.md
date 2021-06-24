@@ -576,6 +576,6 @@ If you want the latest versions of the files described above, head over to the [
 - [`web/config/nginx/default.conf`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/web/config/nginx/default.conf)
 - [`redwood.toml`](https://raw.githubusercontent.com/jeliasson/redwoodjs-on-kubernetes/main/redwood.toml)
 
-A shoutout to [@Tobbe](https://github.com/Tobbe), [@ajcwebdev](https://github.com/Antony), [@dac09](https://github.com/dac09) and [@pi0neerpat](https://github.com/pi0neerpat) for their input. 💌
+A shoutout to [@Tobbe](https://github.com/Tobbe), [@ajcwebdev](https://github.com/ajcwebdev), [@dac09](https://github.com/dac09) and [@pi0neerpat](https://github.com/pi0neerpat) for their input. 💌
 
 I hope you found this read intresting. 👋
