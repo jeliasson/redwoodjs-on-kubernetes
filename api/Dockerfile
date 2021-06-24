@@ -31,10 +31,6 @@ RUN yarn install --frozen-lockfile
 # Build
 RUN yarn rw build api
 
-# Set database baseline
-# We only need to do this once per database
-# RUN yarn rw prisma migrate resolve --applied 20210311161829_baseline0
-
 # Migrate database
 # This has been commented out in this example post
 # RUN yarn rw prisma migrate deploy
@@ -45,9 +41,6 @@ RUN yarn rw build api
 
 # Clean up
 RUN rm -rf ./api/src
-
-# Debugging
-RUN ls -lA ./api/dist
 
 # Set api as workdirectory
 WORKDIR /app/api

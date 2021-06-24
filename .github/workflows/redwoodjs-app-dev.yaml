@@ -128,7 +128,7 @@ jobs:
         run: |
           cd kubernetes/overlays/${RUNTIME_ENV}
           kustomize edit set image placeholder/${{ matrix.platform }}=${CONTAINER_REGISTRY_HOSTNAME}/${CONTAINER_REGISTRY_REPOSITORY}/${CONTAINER_REGISTRY_IMAGE_PREFIX}-${{ matrix.platform }}-${{ env.RUNTIME_ENV }}:${GITHUB_SHA}
-          cat kustomization.yaml
+          cat kustomization.yml
 
       # For debugging purposes, create a latest.yaml file
       - name: Generate Kubernetes latest manifest
