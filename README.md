@@ -43,7 +43,6 @@ WORKDIR /app
 
 COPY api api
 COPY .nvmrc .
-COPY babel.config.js .
 COPY graphql.config.js .
 COPY package.json .
 COPY redwood.toml .
@@ -106,7 +105,6 @@ WORKDIR /app
 # COPY api .
 COPY web web
 COPY .nvmrc .
-COPY babel.config.js .
 COPY graphql.config.js .
 COPY package.json .
 COPY redwood.toml .
@@ -222,7 +220,7 @@ spec:
               value: dev
             - name: DATABASE_URL
               value: postgres://username:password@dbserver:5432/dbname
-          image: ghcr.io/<your org>/redwoodjs-api-main:latest
+          image: ghcr.io/<your-org>/redwoodjs-api-main:latest
           name: api
           ports:
             - containerPort: 8911
@@ -249,7 +247,7 @@ spec:
               value: production
             - name: RUNTIME_ENV
               value: production
-          image: ghcr.io/<your org>/redwoodjs-web-main:22784ba
+          image: ghcr.io/<your-org>/redwoodjs-web-main:22784ba
           name: web
           ports:
             - containerPort: 8910
@@ -303,7 +301,7 @@ metadata:
   name: app
 spec:
   rules:
-    - host: jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.io
+    - host: jeliasson-redwoodjs-on-kubernetes.20.61.155.112.nip.io
       http:
         paths:
           - backend:
@@ -316,7 +314,7 @@ spec:
             path: /api
   tls:
     - hosts:
-        - jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.io
+        - jeliasson-redwoodjs-on-kubernetes.20.61.155.112.nip.io
       secretName: domain-tld-tls
 ```
 
@@ -324,9 +322,9 @@ spec:
 
 So we got all this fancy Docker and Kubernetes stuff defined. Cool. How do we automate and deploy all this? Personally I'd give GitHub my money any day. Ironically, and a large thanks to Microsoft acquiring GitHub and the compute power that came with that, all the stuff we need is free. Regardless, here is this posts meme to illustrate my point.
 
-![fry|625x500, 50%](docs/assets/fry.png "Fry")
+![fry|625x500, 50%](docs/assets/fry.png 'Fry')
 
-[@mojombo](https://github.com/mojombo) - So... if you have any pull at GitHub, [@jeliasson](https://github.com/jeliasson) would not say no to an invite to [Codespaces](https://github.com/features/codespaces) *wink* *wink*
+[@mojombo](https://github.com/mojombo) - So... if you have any pull at GitHub, [@jeliasson](https://github.com/jeliasson) would not say no to an invite to [Codespaces](https://github.com/features/codespaces) _wink_ _wink_
 
 Anyway;
 
@@ -370,7 +368,7 @@ I have explained these steps further in comments below.
 ```yaml
 # Force redeploy
 
-name: "redwoodjs-app-main"
+name: 'redwoodjs-app-main'
 
 on:
   push:
@@ -379,8 +377,8 @@ on:
 
 env:
   # Build
-  NODE_ENV: "development"
-  RUNTIME_ENV: "main"
+  NODE_ENV: 'development'
+  RUNTIME_ENV: 'main'
 
   # Container Registry
   CONTAINER_REGISTRY_HOSTNAME: ghcr.io
@@ -414,7 +412,6 @@ jobs:
           - platform: web
 
     steps:
-
       # Checkout source code
       - name: Checkout source code
         uses: actions/checkout@v2
@@ -514,8 +511,8 @@ jobs:
           author_name: ${{ env.GIT_DEPLOY_REPOSITORY_AUTHOR_NAME }}
           author_email: ${{ env.GIT_DEPLOY_REPOSITORY_AUTHOR_EMAIL }}
           branch: ${{ env.GIT_DEPLOY_REPOSITORY_BRANCH }}
-          message: "[ci] Deployed ${{ github.repository }}@${{ github.sha }}: ${{ github.event.head_commit.message }}"
-          pull_strategy: "--no-ff"
+          message: '[ci] Deployed ${{ github.repository }}@${{ github.sha }}: ${{ github.event.head_commit.message }}'
+          pull_strategy: '--no-ff'
           push: true
           token: ${{ env.GIT_DEPLOY_REPOSITORY_AUTHOR_TOKEN }}
 ```
@@ -523,11 +520,13 @@ jobs:
 ## Result
 
 ### GitHub Actions
+
 Our workflow pipeline ran successfully and looks ✅
 
-![GitHub Actions](docs/assets/github-actions.png "GitHub Actions")
+![GitHub Actions](docs/assets/github-actions.png 'GitHub Actions')
 
 ### GitHub Container Registry
+
 Here we can see [our built api image](https://github.com/users/jeliasson/packages/container/package/redwoodjs-app-web-main) in GitHub Container Registry. Want to give it a test go?
 
 ```docker
@@ -535,17 +534,19 @@ docker run -it --rm \
        -p 8910:8910 \
        ghcr.io/jeliasson/redwoodjs-app-web-main:3a567f545902d35472b6c8d334439cb7b8a47c01
 ```
-![Github Container Registry](docs/assets/github-container-registry.png "Github Container Registry")
+
+![Github Container Registry](docs/assets/github-container-registry.png 'Github Container Registry')
 
 ### ArgoCD
+
 This is the web interface of Argo CD with an overview of the application we just deployed. In this cluster we have two ingress controllers, load balanced on the very edge of the Kubernetes cluster.
-![ArgoCD deployment](docs/assets/argocd.png "ArgoCD deployment")
+![ArgoCD deployment](docs/assets/argocd.png 'ArgoCD deployment')
 
 ### Are we live yet?
-Yes, [we are live](https://jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.io/). And for a simple [api health](https://jeliasson-redwoodjs-on-kubernetes.51.105.102.164.nip.io/api/health).
 
-![Live](docs/assets/live.png "Live")
+Yes, [we are live](https://jeliasson-redwoodjs-on-kubernetes.20.61.155.112.nip.io/). And for a simple [api health](https://jeliasson-redwoodjs-on-kubernetes.20.61.155.112.nip.io/api/health).
 
+![Live](docs/assets/live.png 'Live')
 
 ## Conclusion
 
