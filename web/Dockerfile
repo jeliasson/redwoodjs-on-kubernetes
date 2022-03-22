@@ -17,7 +17,6 @@ WORKDIR /app
 #COPY api .
 COPY web web
 COPY .nvmrc .
-COPY babel.config.js .
 COPY graphql.config.js .
 COPY package.json .
 COPY redwood.toml .
