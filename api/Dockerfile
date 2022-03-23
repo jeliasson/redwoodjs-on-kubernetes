@@ -19,7 +19,6 @@ WORKDIR /app
 
 COPY api api
 COPY .nvmrc .
-COPY babel.config.js .
 COPY graphql.config.js .
 COPY package.json .
 COPY redwood.toml .
@@ -27,6 +26,9 @@ COPY yarn.lock .
 
 # Install dependencies
 RUN yarn install --frozen-lockfile
+
+# Install additional dependencies
+RUN yarn add react react-dom @redwoodjs/api-server @redwoodjs/internal --ignore-workspace-root-check
 
 # Build
 RUN yarn rw build api
